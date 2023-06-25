@@ -95,6 +95,36 @@ def LevinsteinList(value, checker):
 # I have removed the repetitive code. All the remaining functions and Tkinter GUI code remains the same. You can add it back.
 
 
+def doAlumni(xls_file_path, output_file_path):
+    data_frame = pd.read_excel(xls_file_path, sheet_name='Credits + courses taken')
+    output_wb = load_workbook(output_file_path)
+    output_ws = output_wb.active
+    totalPoint=data_frame.iloc[0]['To be taken total']
+    deduct= data_frame[data_frame["total"]<totalPoint * 0.8]['Students']
+    Notdeduct = data_frame[data_frame["total"] >= totalPoint * 0.8]['Students']
+    column_deduct = "Відрахувати"
+    column_notDeduct = "Залишити"
+    target_column_deduct = None
+    target_column_notDeduct = None
+    for column in output_ws.iter_cols(min_row=1, max_row=1):
+        if column[0].value == column_deduct:
+            target_column_deduct = column[0].column
+        if column[0].value == column_notDeduct:
+            target_column_notDeduct = column[0].column
+        if target_column_deduct != None and target_column_notDeduct != None:
+            break
+    data = zip(deduct, Notdeduct)
+
+    for i, (Deduct,  notdeduct) in enumerate(data, start=2):
+        output_ws.cell(row=i, column=target_column_deduct, value=Deduct)
+        output_ws.cell(row=i, column=target_column_notDeduct, value=notdeduct)
+
+
+    output_wb.save(output_file_path)
+
+    output_wb.save(output_file_path)
+    print("Success")
+
 
 
 def doZoom(xls_file_path, output_file_path):
@@ -190,6 +220,10 @@ def process_files():
         elif "Moodle" in input_file_path:
             doMoodle(input_file_path, output_file_path)
             name_correction("C:\\Users\Давід\\PycharmProjects\\Internship2.0\\Students.xlsx", output_file_path)
+        elif "Alumni and Students" in input_file_path:
+            doAlumni(input_file_path, output_file_path)
+            #name_correction("C:\\Users\Давід\\PycharmProjects\\Internship2.0\\Students.xlsx", output_file_path)
+
         print("g")
 
 root = tk.Tk()
