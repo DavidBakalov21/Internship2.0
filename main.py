@@ -113,16 +113,15 @@ def doAlumni(xls_file_path, output_file_path):
             target_column_notDeduct = column[0].column
         if target_column_deduct != None and target_column_notDeduct != None:
             break
-    data = zip(deduct, Notdeduct)
 
-    for i, (Deduct,  notdeduct) in enumerate(data, start=2):
+    for i, Deduct in enumerate(deduct, start=2):
         output_ws.cell(row=i, column=target_column_deduct, value=Deduct)
+    for i, notdeduct in enumerate(Notdeduct, start=2):
         output_ws.cell(row=i, column=target_column_notDeduct, value=notdeduct)
 
-
     output_wb.save(output_file_path)
 
-    output_wb.save(output_file_path)
+
     print("Success")
 
 
@@ -222,7 +221,7 @@ def process_files():
             name_correction("C:\\Users\Давід\\PycharmProjects\\Internship2.0\\Students.xlsx", output_file_path)
         elif "Alumni and Students" in input_file_path:
             doAlumni(input_file_path, output_file_path)
-            #name_correction("C:\\Users\Давід\\PycharmProjects\\Internship2.0\\Students.xlsx", output_file_path)
+
 
         print("g")
 
