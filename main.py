@@ -4,47 +4,41 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import numpy as np
 from openpyxl.reader.excel import load_workbook
-print("f")
-def name_correction(input_file_path, output_file_path):
-    data_frame = pd.read_excel(input_file_path)
-    surnames = data_frame['Прізвище']
-    names = data_frame["Ім'я"]
-    full_names = [f"{name} {surname}" for name, surname in zip(names, surnames)]
 
-    data_frameT = pd.read_excel(output_file_path)
+def name_correction(name_file_path, output_file_path):
+    data_frame = pd.read_excel(output_file_path)
+    names = data_frame["Ім'я(справжнє)"]
+   # names = data_frame["Ім'я"]
+    full_names = [f"{name}" for name in names]
+
+    data_frameT = pd.read_excel(name_file_path)
     surnamesT = data_frameT['Прізвище']
     namesT = data_frameT["Ім'я"]
     full_namesT = [f"{name} {surname}" for name, surname in zip(namesT, surnamesT)]
 
     ListForWrite=[]
 
-    for i in full_namesT:
-        if i in full_names:
+    for i in full_names:
+        if i in full_namesT:
             ListForWrite.append(i)
         else:
-            ListForWrite.append(LevinsteinList(i, full_names))
+            ListForWrite.append(LevinsteinList(i, full_namesT))
 
     output_wb = load_workbook(output_file_path)
     output_ws = output_wb.active
-    column_surname = "Прізвище"
-    column_name = "Ім'я"
+
+    column_name = "Ім'я(справжнє)"
     target_column_name = None
-    target_column_surname = None
     for column in output_ws.iter_cols(min_row=1, max_row=1):
-        if column[0].value == column_surname:
-            target_column_surname = column[0].column
         if column[0].value == column_name:
             target_column_name = column[0].column
-        if target_column_surname != None and target_column_name != None:
+        if target_column_name != None:
             break
     for i, item in enumerate(ListForWrite, start=2):
-        splited= item.split(" ")
-        surname=splited[1]
-        name=splited[0]
-        output_ws.cell(row=i, column=target_column_surname, value=surname)  # Assuming surname goes in the first column
-        output_ws.cell(row=i, column=target_column_name, value=name)  # Assuming name goes in the second column
+        output_ws.cell(row=i, column=target_column_name, value=item)  # Assuming name goes in the second column
 
     output_wb.save(output_file_path)
+    output_label['text'] = "Success"
 
 def LevinsteinList(value, checker):
     draft = {}
@@ -121,8 +115,10 @@ def doAlumni(xls_file_path, output_file_path):
 
     output_wb.save(output_file_path)
 
+    output_label['text'] = "Success"
 
-    print("Success")
+
+
 
 
 
@@ -154,7 +150,7 @@ def doZoom(xls_file_path, output_file_path):
         output_ws.cell(row=i, column=target_column_name, value=name)
 
     output_wb.save(output_file_path)
-    print("Success")
+    output_label['text'] = "Success"
 
 def doMoodle(xls_file_path, output_file_path):
     data_frame = pd.read_excel(xls_file_path)
@@ -186,7 +182,7 @@ def doMoodle(xls_file_path, output_file_path):
         output_ws.cell(row=i, column=target_column_name, value=name)
 
     output_wb.save(output_file_path)
-    print("Success")
+    output_label['text'] = "Success"
 
 def select_input_file():
     global input_file_path
@@ -211,19 +207,59 @@ def select_output_file():
         else:
             output_file_label['text'] = output_file_path
 
+def select_names_file():
+    global names_file_path
+
+    names_file_path = filedialog.askopenfilename(title="Select input file",
+                                                 filetypes=(("Excel files", "*.xls *.xlsx"), ("All files", "*.*")))
+    if names_file_path:
+        if not (names_file_path.endswith(".xls") or names_file_path.endswith(".xlsx")):
+            messagebox.showerror("Error", "Input file must be a .xls or .xlsx file!")
+            names_file_path = ""
+        else:
+            names_file_label['text'] = names_file_path
+
 def process_files():
     if input_file_path and output_file_path:
         if "Zoom" in input_file_path:
             doZoom(input_file_path, output_file_path)
-            name_correction("C:\\Users\Давід\\PycharmProjects\\Internship2.0\\Students.xlsx", output_file_path)
+            if names_file_path!="":
+                name_correction(names_file_path, output_file_path)
         elif "Moodle" in input_file_path:
             doMoodle(input_file_path, output_file_path)
-            name_correction("C:\\Users\Давід\\PycharmProjects\\Internship2.0\\Students.xlsx", output_file_path)
+          #  name_correction(names_file_path, output_file_path)
         elif "Alumni and Students" in input_file_path:
             doAlumni(input_file_path, output_file_path)
 
 
+
         print("g")
+
+
+def open_text_window():
+    text_window = tk.Toplevel(root)
+    text_window.title("Text Window")
+
+    text_label = tk.Label(text_window, text="""Інструкція користування програмою "KSE Automatization" 
+    
+    Клацніть на кнопку "Select Input File". 
+    Відкриється діалогове вікно, в якому ви зможете обрати вхідний файл у форматі .xls або .xlsx. 
+    
+    Оберіть потрібний файл і натисніть "Open". Над кнопкою "Select Input File" з'явиться шлях до вибраного вхідного файлу. 
+    Клацніть на кнопку "Select Output File". Відкриється діалогове вікно, в якому ви зможете обрати вихідний файл у форматі .xls або .xlsx. 
+    
+    Оберіть потрібний файл і натисніть "Open".
+     Над кнопкою "Select Output File" з'явиться шлях до вибраного вихідного файлу. 
+     Натисніть кнопку "Process Files". Програма почне обробку даних. 
+     
+     Якщо в назві вхідного файлу присутнє "Zoom", буде запущена функція doZoom(в вхідному файлі необхідні колонки: Тривалість та Ім'я(справжнє), в вихідному: Відвідуваність та Ім'я(справжнє)). 
+     Якщо в назві вхідного файлу присутнє "Moodle", буде запущена функція doMoodle(в вхідному файлі необхідні колонки: Загальне за курс (Бали),  Прізвище, Ім'я,  в вихідному: Бали,  Прізвище, Ім'я). 
+     Якщо в назві вхідного файлу присутнє "Alumni and Students", буде запущена функція doAlumni(в вхідному файлі необхідні колонки: To be taken total, total, Students  в вихідному: Відрахувати, Залишити). 
+     
+     В програмі присутня функція корекції Імен для таблиць "Zoom", для того, щоб її активувати необхідно натиснути на кнопку "Name", після натискання виберіть файл .xls або .xlsx, який містить дві колонки "Прізвище" і "Ім'я" студентів(якщо не обирати файл при натисканні цієї кнопки, то корекція імен не відбудеться). 
+     Застереження: у таблиці "Zoom" імена студентів мають бути написані у форматі(Ім’я Прізвище).  
+     Після обробки файлів в консолі з'явиться повідомлення "Success". Це означає, що дані були успішно оброблені і збережені в вихідному файлі.""", font=('Verdana', 12))
+    text_label.pack(padx=10, pady=10)
 
 root = tk.Tk()
 root.title("KSE Automatization")
@@ -248,5 +284,15 @@ output_file_label.pack(pady=10)
 
 process_button = tk.Button(root, text="Process Files", command=process_files, font=('Verdana', 14), padx=20, pady=10)
 process_button.pack()
+output_label = tk.Label(root, text="", font=('Verdana', 10))
+output_label.pack(pady=10)
 
+names_button = tk.Button(root, text="Names", command=select_names_file, font=('Verdana', 14), padx=20, pady=10)
+names_button.pack()
+
+names_file_label = tk.Label(root, text="", font=('Verdana', 10))
+names_file_label.pack(pady=10)
+text_button = tk.Button(root, text="...", command=open_text_window, font=('Verdana', 14), padx=10, pady=5)
+text_button.pack()
 root.mainloop()
+
