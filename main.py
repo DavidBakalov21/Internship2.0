@@ -4,7 +4,7 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import numpy as np
 from openpyxl.reader.excel import load_workbook
-#from transliterate import translit
+
 def transliterate_uk(text):
     mapping = {
         'а': 'a',
@@ -309,7 +309,7 @@ def process_files():
     if input_file_path and output_file_path:
         if "Zoom" in input_file_path:
             doZoom(input_file_path, output_file_path)
-            if names_file_path != "":
+            if "names_file_path" in globals():
                 name_correction(names_file_path, output_file_path)
         elif "Moodle" in input_file_path:
             doMoodle(input_file_path, output_file_path)
@@ -346,7 +346,7 @@ def open_text_window():
     запущена функція doAlumni(в вхідному файлі необхідні колонки: To be taken total, total, Students  в вихідному: Відрахувати, Залишити). 
 
     В програмі присутня функція корекції Імен для таблиць "Zoom", для того, щоб її активувати необхідно натиснути 
-    на кнопку "Name", після натискання виберіть файл .xls або .xlsx, який містить дві колонки "Прізвище" і "Ім'я" 
+    на кнопку "Names", після натискання виберіть файл .xls або .xlsx, який містить дві колонки "Прізвище" і "Ім'я" 
     студентів(якщо не обирати файл при натисканні цієї кнопки, то корекція імен не відбудеться).  
     Після обробки файлів в консолі з'явиться повідомлення "Success". Це означає, що дані були успішно оброблені і збережені в вихідному файлі.""",
                           font=('Verdana', 12))
