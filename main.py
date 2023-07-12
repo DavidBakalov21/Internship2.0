@@ -4,7 +4,6 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import numpy as np
 from openpyxl.reader.excel import load_workbook
-
 def transliterate_uk(text):
     mapping = {
         'а': 'a',
@@ -88,11 +87,16 @@ def transliterate_uk(text):
 
 def name_correction(name_file_path, output_file_path):
     data_frameTF = pd.read_excel(name_file_path)
-    surnamesTF = data_frameTF['Прізвище']
-    namesTF = data_frameTF["Ім'я"]
     data_frame = pd.read_excel(output_file_path)
-    names = data_frame["Ім'я(справжнє)"]
-    full_names = [f"{transliterate_uk(name)}" for name in names]
+    if 'Прізвище' in data_frameTF.columns and "Ім'я" in data_frameTF.columns and "Ім'я(справжнє)" in data_frame.columns:
+        surnamesTF = data_frameTF['Прізвище']
+        namesTF = data_frameTF["Ім'я"]
+        #names = data_frame["Ім'я(справжнє)"]
+    else:
+        messagebox.showerror("Error", "No required columns found.")
+        #print("No required columns")
+        return
+    full_names = [f"{transliterate_uk(name)}" for name in data_frame["Ім'я(справжнє)"] if pd.notnull(name)]
     full_namesT = [f"{name} {surname}" for name, surname in zip(namesTF, surnamesTF)]
     full_namesTN = [f"{surname} {name} " for name, surname in zip(namesTF, surnamesTF)]
     translitNamesSurnames=[f"{transliterate_uk(name)} {transliterate_uk(surname)}" for name, surname in zip(namesTF, surnamesTF)]
@@ -117,11 +121,14 @@ def name_correction(name_file_path, output_file_path):
             target_column_name = column[0].column
         if target_column_name != None:
             break
+    if target_column_name==None:
+        messagebox.showerror("Error", "No required columns found.")
+        return
     for y, item in enumerate(ListForWrite, start=2):
         output_ws.cell(row=y, column=target_column_name, value=item)  # Assuming name goes in the second column
 
     output_wb.save(output_file_path)
-    output_label['text'] = "Success"
+    messagebox.showinfo("Success","Success")
 
 
 def LevinsteinList(value, checker):
@@ -169,18 +176,17 @@ def LevinsteinList(value, checker):
 
     return res[1]
 
-
-# Main program starts here
-# I have removed the repetitive code. All the remaining functions and Tkinter GUI code remains the same. You can add it back.
-
-
 def doAlumni(xls_file_path, output_file_path):
     data_frame = pd.read_excel(xls_file_path, sheet_name='Credits + courses taken')
     output_wb = load_workbook(output_file_path)
     output_ws = output_wb.active
-    totalPoint = data_frame.iloc[0]['To be taken total']
-    deduct = data_frame[data_frame["total"] < totalPoint * 0.8]['Students']
-    Notdeduct = data_frame[data_frame["total"] >= totalPoint * 0.8]['Students']
+    if 'To be taken total' in data_frame.columns and "total" in data_frame.columns and "Students" in data_frame.columns:
+        totalPoint = data_frame.iloc[0]['To be taken total']
+        deduct = data_frame[data_frame["total"] < totalPoint * 0.8]['Students']
+        Notdeduct = data_frame[data_frame["total"] >= totalPoint * 0.8]['Students']
+    else:
+        messagebox.showerror("Error", "No required columns found in input table.")
+        return
     column_deduct = "Відрахувати"
     column_notDeduct = "Залишити"
     target_column_deduct = None
@@ -192,6 +198,9 @@ def doAlumni(xls_file_path, output_file_path):
             target_column_notDeduct = column[0].column
         if target_column_deduct != None and target_column_notDeduct != None:
             break
+    if target_column_deduct==None or target_column_notDeduct==None:
+        messagebox.showerror("Error", "No required columns found in output table.")
+        return
 
     for i, Deduct in enumerate(deduct, start=2):
         output_ws.cell(row=i, column=target_column_deduct, value=Deduct)
@@ -200,13 +209,17 @@ def doAlumni(xls_file_path, output_file_path):
 
     output_wb.save(output_file_path)
 
-    output_label['text'] = "Success"
+    messagebox.showinfo("Success","Success")
 
 
 def doZoom(xls_file_path, output_file_path):
     data_frame = pd.read_excel(xls_file_path)
-    duration = data_frame['Тривалість']
-    Name = data_frame["Ім'я(справжнє)"]
+    if 'Тривалість' in data_frame.columns and "Ім'я(справжнє)" in data_frame.columns:
+        duration = data_frame['Тривалість']
+        Name = data_frame["Ім'я(справжнє)"]
+    else:
+        messagebox.showerror("Error", "No required columns found in input table.")
+        return
     output_wb = load_workbook(output_file_path)
     output_ws = output_wb.active
     column_duration = "Відвідуваність"
@@ -220,7 +233,9 @@ def doZoom(xls_file_path, output_file_path):
             target_column_name = column[0].column
         if target_column_attendance != None and target_column_name != None:
             break
-
+    if target_column_name==None or target_column_attendance==None:
+        messagebox.showerror("Error", "No required columns found in output table.")
+        return
     data = zip(duration, Name)
 
     for i, (attendance, name) in enumerate(data, start=2):
@@ -231,14 +246,18 @@ def doZoom(xls_file_path, output_file_path):
         output_ws.cell(row=i, column=target_column_name, value=name)
 
     output_wb.save(output_file_path)
-    output_label['text'] = "Success"
+    messagebox.showinfo("Success","Success")
 
 
 def doMoodle(xls_file_path, output_file_path):
     data_frame = pd.read_excel(xls_file_path)
-    Grades = data_frame['Загальне за курс (Бали)']
-    Surname = data_frame['Прізвище']
-    Name = data_frame["Ім'я"]
+    if 'Загальне за курс (Бали)' in data_frame.columns and "Прізвище" in data_frame.columns and "Ім'я" in data_frame.columns:
+        Grades = data_frame['Загальне за курс (Бали)']
+        Surname = data_frame['Прізвище']
+        Name = data_frame["Ім'я"]
+    else:
+        messagebox.showerror("Error", "No required columns found in input table.")
+        return
     output_wb = load_workbook(output_file_path)
     output_ws = output_wb.active
     column_grade = "Бали"
@@ -256,7 +275,9 @@ def doMoodle(xls_file_path, output_file_path):
             target_column_name = column[0].column
         if target_column_surname != None and target_column_name != None and target_column_grade != None:
             break
-
+    if target_column_name==None or target_column_grade==None or target_column_surname==None:
+        messagebox.showerror("Error", "No required columns found in output table.")
+        return
     data = zip(Grades, Surname, Name)
     for i, (grade, surname, name) in enumerate(data, start=2):
         output_ws.cell(row=i, column=target_column_grade, value=grade)
@@ -264,7 +285,7 @@ def doMoodle(xls_file_path, output_file_path):
         output_ws.cell(row=i, column=target_column_name, value=name)
 
     output_wb.save(output_file_path)
-    output_label['text'] = "Success"
+    messagebox.showinfo("Success","Success")
 
 
 def select_input_file():
@@ -310,14 +331,15 @@ def process_files():
         if "Zoom" in input_file_path:
             doZoom(input_file_path, output_file_path)
             if "names_file_path" in globals():
-                name_correction(names_file_path, output_file_path)
+                if names_file_path!="":
+                    name_correction(names_file_path, output_file_path)
         elif "Moodle" in input_file_path:
             doMoodle(input_file_path, output_file_path)
         #  name_correction(names_file_path, output_file_path)
         elif "Alumni and Students" in input_file_path:
             doAlumni(input_file_path, output_file_path)
 
-        print("g")
+        #print("g")
 
 
 def open_text_window():
